@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burnout Risk Assessor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --primary-color: #3498db;
+            --border-color: #e1e5e8;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --tip-bg: #eaf5ff;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        header p {
+            color: #777;
+        }
+        .question-card {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .question-category {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        .options label {
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .options label:hover {
+            background-color: #ecf0f1;
+        }
+        .options input[type="radio"] {
+            margin-right: 10px;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #submit-btn:hover {
+            background-color: #2980b9;
+        }
+        #results-container {
+            display: none;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        .result-breakdown {
+            margin-top: 2rem;
+            text-align: left;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+        .result-breakdown p {
+            margin: 0.5rem 0;
+        }
+        .result-low { border: 2px solid var(--success); background-color: #f2fdf7; }
+        .result-moderate { border: 2px solid var(--warning); background-color: #fff9f0; }
+        .result-high { border: 2px solid var(--danger); background-color: #fef4f4; }
+        #results-container h2, #results-container h3 { text-align: center; }
+        .daily-tip {
+            margin-top: 2.5rem;
+            padding: 1.5rem;
+            background-color: var(--tip-bg);
+            border-left: 5px solid var(--primary-color);
+            border-radius: 8px;
+        }
+        .daily-tip h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="quiz-container">
+            <header>
+                <h1>Burnout Risk Self-Assessment</h1>
+                <p>Answer based on your feelings over the past few weeks. This is a confidential tool.</p>
+            </header>
+            <form id="wellness-quiz"></form>
+            <button id="submit-btn">Calculate My Score</button>
+        </div>
+        <div id="results-container"></div>
+    </div>
+
+    <script>
+        const wellnessTips = [
+            "Take a 5-minute walk. A short break to move your body can clear your mind and boost energy.",
+            "Practice mindful breathing. Inhale for 4 seconds, hold for 4, and exhale for 6. Repeat 5 times.",
+            "Write down three things you accomplished today, no matter how small. Acknowledge your progress.",
+            "Disconnect from screens for 30 minutes before bed. Read a book or listen to calming music instead.",
+            "Stay hydrated. Drinking enough water is crucial for both physical and mental performance.",
+            "Do a quick 10-minute tidy-up of your space. A clean environment can lead to a clearer mind.",
+            "Reach out to a friend or family member just to say hello. Social connection is a powerful mood booster.",
+            "Listen to your favorite upbeat song. Music can quickly change your emotional state.",
+            "Stretch your body for 5-10 minutes. Focus on areas of tension like your neck, shoulders, and back.",
+            "Spend a few minutes in nature, even if it's just looking out a window at a tree. It helps reduce stress.",
+            "Eat a healthy snack, like a piece of fruit or a handful of nuts, to stabilize your energy levels.",
+            "Set a small, achievable goal for tomorrow. This creates a sense of purpose and direction.",
+            "Practice the '4-7-8' breathing technique to calm your nervous system instantly.",
+            "Limit your news consumption for a day. Constant negative information can be draining.",
+            "Jot down any worries on a piece of paper before bed to help clear your mind for sleep.",
+            "Engage in a hobby you enjoy for at least 15 minutes, whether it's drawing, reading, or playing an instrument.",
+            "Compliment someone. Making others feel good can also lift your own spirits.",
+            "Plan something to look forward to, even if it's a small treat like your favorite coffee tomorrow morning."
+        ];
+
+        const quizData = [
+            // Emotional Exhaustion
+            { category: 'Emotional Exhaustion', question: "I feel emotionally drained by my work.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Emotional Exhaustion', question: "I feel used up at the end of the workday.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Emotional Exhaustion', question: "I feel tired when I have to face another day on the job.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Emotional Exhaustion', question: "I feel burned out from my work.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            // Cynicism
+            { category: 'Cynicism', question: "I have become less interested in my work since I started this job.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Cynicism', question: "I have become more cynical about whether my work contributes anything.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Cynicism', question: "I doubt the significance of my work.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            { category: 'Cynicism', question: "I just want to do my job and not be bothered.", options: [{ text: "Never", value: 0 }, { text: "Rarely", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Often", value: 3 }, { text: "Very Often", value: 4 }] },
+            // Professional Efficacy (Reverse Scored)
+            { category: 'Professional Efficacy', question: "I can effectively solve the problems that arise in my work.", options: [{ text: "Very Often", value: 0 }, { text: "Often", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Rarely", value: 3 }, { text: "Never", value: 4 }] },
+            { category: 'Professional Efficacy', question: "I feel I am making an effective contribution to what this organization does.", options: [{ text: "Very Often", value: 0 }, { text: "Often", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Rarely", value: 3 }, { text: "Never", value: 4 }] },
+            { category: 'Professional Efficacy', question: "I feel exhilarated when I accomplish something at work.", options: [{ text: "Very Often", value: 0 }, { text: "Often", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Rarely", value: 3 }, { text: "Never", value: 4 }] },
+            { category: 'Professional Efficacy', question: "In my opinion, I am good at my job.", options: [{ text: "Very Often", value: 0 }, { text: "Often", value: 1 }, { text: "Sometimes", value: 2 }, { text: "Rarely", value: 3 }, { text: "Never", value: 4 }] }
+        ];
+
+        const quizForm = document.getElementById('wellness-quiz');
+        const submitBtn = document.getElementById('submit-btn');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+
+        function buildQuiz() {
+            quizData.forEach((item, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                let optionsHTML = '<div class="options">';
+                item.options.forEach(option => {
+                    optionsHTML += `<label><input type="radio" name="question${index}" value="${option.value}" required> ${option.text}</label>`;
+                });
+                optionsHTML += '</div>';
+                questionCard.innerHTML = `<div class="question-category">${item.category}</div><div class="question-text">${index + 1}. ${item.question}</div>${optionsHTML}`;
+                quizForm.appendChild(questionCard);
+            });
+        }
+
+        function showResults() {
+            let scores = { 'Emotional Exhaustion': 0, 'Cynicism': 0, 'Professional Efficacy': 0 };
+            let allAnswered = true;
+
+            quizData.forEach((item, index) => {
+                const selector = `input[name="question${index}"]:checked`;
+                const userAnswer = (quizForm.querySelector(selector));
+                if (userAnswer) {
+                    scores[item.category] += parseInt(userAnswer.value);
+                } else {
+                    allAnswered = false;
+                }
+            });
+
+            if (!allAnswered) {
+                alert('Please answer all questions before submitting.');
+                return;
+            }
+
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+
+            const overallScore = scores['Emotional Exhaustion'] + scores['Cynicism'] + scores['Professional Efficacy'];
+            let resultHTML = '';
+            let summaryText = '';
+
+            if (overallScore <= 15) {
+                resultsContainer.className = 'result-low';
+                resultHTML = `<h2>Low Risk of Burnout</h2>`;
+                summaryText = `Your responses suggest a healthy level of engagement and well-being. Continue to prioritize self-care and maintain positive work habits.`;
+            } else if (overallScore <= 30) {
+                resultsContainer.className = 'result-moderate';
+                resultHTML = `<h2>Moderate Risk of Burnout</h2>`;
+                summaryText = `Your responses indicate some signs of burnout. It may be beneficial to review your workload, seek support, and ensure you are taking adequate time for recovery.`;
+            } else {
+                resultsContainer.className = 'result-high';
+                resultHTML = `<h2>High Risk of Burnout</h2>`;
+                summaryText = `Your responses suggest a significant risk of burnout. It is strongly recommended to speak with a trusted advisor, mentor, or a mental health professional to explore these feelings further.`;
+            }
+
+            resultHTML += `<p>${summaryText}</p>
+                           <div class="result-breakdown">
+                             <h3>Score Breakdown</h3>
+                             <p><strong>Emotional Exhaustion (lower is better):</strong> ${scores['Emotional Exhaustion']} / 16</p>
+                             <p><strong>Cynicism (lower is better):</strong> ${scores['Cynicism']} / 16</p>
+                             <p><strong>Professional Efficacy (lower is better):</strong> ${scores['Professional Efficacy']} / 16</p>
+                           </div>`;
+            
+            const now = new Date();
+            const startOfYear = new Date(now.getFullYear(), 0, 0);
+            const diff = now - startOfYear;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            
+            const tipIndex = dayOfYear % wellnessTips.length;
+            const dailyTip = wellnessTips[tipIndex];
+
+            resultHTML += `<div class="daily-tip">
+                             <h3>💡 Tip of the Day</h3>
+                             <p>${dailyTip}</p>
+                           </div>`;
+
+            resultsContainer.innerHTML = resultHTML;
+        }
+
+        buildQuiz();
+        submitBtn.addEventListener('click', showResults);
+    </script>
+</body>
+</html>
