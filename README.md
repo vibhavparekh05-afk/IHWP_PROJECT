@@ -36,4 +36,3 @@ In the realm of Indian wellness and psychology, this instrument is solving the i
 2.  Respond to all 12 questions according to your feelings during the last few weeks.
 3.  Click "Calculate My Score" button.
 4.  Your outcome will immediately appear, showing a general burnout risk level (Low, Moderate, or High) and a **detailed score breakdown** for each of the three core dimensions.
-5.  There is also a daily tip which changes on daily basis.
